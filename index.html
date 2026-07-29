@@ -190,9 +190,12 @@
   }
   .surah-list::-webkit-scrollbar{width:6px;}
   .surah-list::-webkit-scrollbar-thumb{background:var(--line); border-radius:6px;}
-  #tafsirSurahResult{
-    max-height:320px; overflow-y:auto; margin-top:10px;
+  .tafsir-inline-panel{
+    max-height:0; overflow:hidden; transition:max-height .35s ease;
+    background:rgba(0,0,0,0.15); border-bottom:1px solid var(--line);
   }
+  .tafsir-inline-panel.open{max-height:2000px; overflow-y:auto;}
+  .tafsir-inline-panel-inner{padding:14px 16px;}
   .tafsir-surah-title{
     font-weight:800; color:var(--gold-soft); font-size:0.9rem; margin-bottom:10px; text-align:center;
   }
@@ -360,14 +363,14 @@
   .qp-action.active svg{fill:rgba(224,184,105,0.22);}
 
   /* ============ أذكار الصباح والمساء ============ */
-  .azkar-tabs{
-    display:flex; flex-direction:column; gap:8px; margin-bottom:0;
+  .azkar-tabs-grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:0;
   }
   .azkar-tab{
     display:flex; align-items:center; gap:12px;
-    width:100%; text-align:right; padding:12px 16px; border-radius:12px;
+    width:100%; text-align:right; padding:12px 14px; border-radius:12px;
     background:rgba(0,0,0,0.2); border:1px solid var(--line); cursor:pointer;
-    font-family:var(--app-font,'Tajawal'), sans-serif; font-weight:700; font-size:0.95rem;
+    font-family:var(--app-font,'Tajawal'), sans-serif; font-weight:700; font-size:0.9rem;
     color:var(--cream); transition:all .25s ease;
   }
   .azkar-tab-icon{
@@ -382,13 +385,14 @@
     border-color:var(--gold);
   }
   .azkar-tab.active .chev{transform:rotate(180deg); color:var(--gold-soft);}
-  .azkar-tab + .azkar-tab{margin-top:2px;}
+
+  .azkar-panels{margin-top:12px;}
 
   .azkar-panel{
     max-height:0; overflow:hidden;
     transition:max-height .35s ease;
   }
-  .azkar-panel.open{max-height:6000px;}
+  .azkar-panel.open{max-height:6000px; margin-bottom:10px;}
 
   .azkar-progress{
     display:flex; align-items:center; gap:10px; margin:16px 0 16px;
@@ -449,31 +453,37 @@
     background:var(--gold); color:var(--night); border-color:var(--gold);
   }
 
-  /* ============ اختيار القارئ / المصحف / السورة / التفسير: أيقونات دائرية ============ */
+  /* ============ اختيار القارئ / المصحف / السورة / التفسير: بنفس تصميم أيقونات الأذكار ============ */
   .quran-icon-row{
-    display:flex; justify-content:space-between; gap:8px; margin-bottom:16px;
+    display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;
   }
   .quran-icon-btn{
-    flex:1; display:flex; flex-direction:column; align-items:center; gap:6px;
-    background:transparent; border:none; cursor:pointer; padding:6px 2px;
-    color:var(--cream); font-family:var(--app-font,'Tajawal'), sans-serif;
+    display:flex; align-items:center; gap:12px;
+    width:100%; text-align:right; padding:12px 14px; border-radius:12px;
+    background:rgba(0,0,0,0.2); border:1px solid var(--line); cursor:pointer;
+    font-family:var(--app-font,'Tajawal'), sans-serif; font-weight:700; font-size:0.9rem;
+    color:var(--cream); transition:all .25s ease;
   }
   .qib-icon{
-    width:56px; height:56px; border-radius:50%; flex:none;
-    display:flex; align-items:center; justify-content:center; font-size:1.5rem;
-    background:rgba(0,0,0,0.2); border:1.5px solid var(--line);
-    transition:all .25s ease;
+    width:36px; height:36px; flex:none; border-radius:10px;
+    display:flex; align-items:center; justify-content:center; font-size:1.1rem;
+    background:rgba(224,184,105,0.12);
   }
-  .quran-icon-btn.open .qib-icon, .quran-icon-btn:hover .qib-icon{
-    border-color:var(--gold-soft); background:rgba(224,184,105,0.12);
+  .qib-text{flex:1; display:flex; flex-direction:column; align-items:flex-start; gap:2px; min-width:0;}
+  .qib-label{flex:1; font-size:0.9rem; color:var(--cream);}
+  .qib-sub{font-size:0.72rem; color:var(--gold-soft); font-family:'Amiri', serif;}
+  .quran-icon-btn .chev{width:18px; height:18px; flex:none; color:var(--muted); transition:transform .25s ease;}
+  .quran-icon-btn.open{
+    background:linear-gradient(180deg, var(--panel), var(--night-2));
+    border-color:var(--gold);
   }
-  .qib-label{font-size:0.72rem; color:var(--muted); text-align:center;}
-  .qib-sub{font-size:0.68rem; color:var(--gold-soft); text-align:center; font-family:'Amiri', serif;}
+  .quran-icon-btn.open .chev{transform:rotate(180deg); color:var(--gold-soft);}
 
   .reciter-panel{max-height:0; overflow:hidden; transition:max-height .35s ease; margin-bottom:0;}
   .reciter-panel.open{max-height:400px; margin-bottom:14px;}
   #surahPanel.open{max-height:500px;}
   #tafsirPanel.open{max-height:900px; overflow-y:auto;}
+
   .reciter-list{
     max-height:400px; overflow-y:auto;
     border-radius:14px; border:1px solid var(--line);
@@ -1378,21 +1388,33 @@
     <div class="quran-icon-row">
       <button class="quran-icon-btn" id="quranOpenMushafBtn">
         <span class="qib-icon">📖</span>
-        <span class="qib-label">تصفح المصحف</span>
+        <span class="qib-text">
+          <span class="qib-label">تصفح المصحف</span>
+        </span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg>
       </button>
       <button class="quran-icon-btn" id="reciterBtn">
         <span class="qib-icon">🎙️</span>
-        <span class="qib-label">القارئ الحالي</span>
-        <span class="qib-sub" id="reciterCur">بدر التركي</span>
+        <span class="qib-text">
+          <span class="qib-label">القارئ</span>
+          <span class="qib-sub" id="reciterCur">اختر القارئ</span>
+        </span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg>
       </button>
       <button class="quran-icon-btn" id="surahBtn">
         <span class="qib-icon">📜</span>
-        <span class="qib-label">السورة</span>
-        <span class="qib-sub" id="surahCur">اختر سورة</span>
+        <span class="qib-text">
+          <span class="qib-label">السورة</span>
+          <span class="qib-sub" id="surahCur">اختر سورة</span>
+        </span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg>
       </button>
       <button class="quran-icon-btn" id="tafsirBtn">
         <span class="qib-icon">📝</span>
-        <span class="qib-label">التفسير</span>
+        <span class="qib-text">
+          <span class="qib-label">التفسير</span>
+        </span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg>
       </button>
     </div>
 
@@ -1408,7 +1430,6 @@
     <div class="reciter-panel" id="tafsirPanel">
       <input type="text" class="search-box" id="tafsirSearchBox" placeholder="ابحث عن سورة...">
       <div class="surah-list" id="tafsirSurahList"></div>
-      <div id="tafsirSurahResult"></div>
     </div>
 
     <span id="surahCurMini" style="display:none;"></span>
@@ -1449,16 +1470,37 @@
 <div class="section-overlay" id="azkarOverlay">
   <div class="mushaf-top">
     <button class="mushaf-close" id="azkarClose">✕</button>
-    <div class="mushaf-page-info" data-i18n="overlay.azkar">الأذكار والتسبيح</div>
+    <div class="mushaf-page-info"></div>
     <div style="width:36px;"></div>
   </div>
   <div class="mushaf-content">
-    <div class="azkar-tabs">
+    <div class="azkar-tabs-grid">
       <button class="azkar-tab" id="tabSabah">
         <span class="azkar-tab-icon">🌅</span>
         <span class="azkar-tab-label">أذكار الصباح</span>
         <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg>
       </button>
+
+      <button class="azkar-tab" id="tabMasaa">
+        <span class="azkar-tab-icon">🌙</span>
+        <span class="azkar-tab-label">أذكار المساء</span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+
+      <button class="azkar-tab" id="tabOther">
+        <span class="azkar-tab-icon">🤲</span>
+        <span class="azkar-tab-label">أدعية أخرى</span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+
+      <button class="azkar-tab" id="tabTasbeeh">
+        <span class="azkar-tab-icon">📿</span>
+        <span class="azkar-tab-label">التسبيح</span>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+    </div>
+
+    <div class="azkar-panels">
       <div class="azkar-panel" id="azkarPanelSabah">
         <div class="azkar-progress">
           <span class="count-txt" id="azkarCountTxtSabah">0 / 0</span>
@@ -1468,11 +1510,6 @@
         <div class="azkar-list" id="azkarListSabah"></div>
       </div>
 
-      <button class="azkar-tab" id="tabMasaa">
-        <span class="azkar-tab-icon">🌙</span>
-        <span class="azkar-tab-label">أذكار المساء</span>
-        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg>
-      </button>
       <div class="azkar-panel" id="azkarPanelMasaa">
         <div class="azkar-progress">
           <span class="count-txt" id="azkarCountTxtMasaa">0 / 0</span>
@@ -1482,11 +1519,6 @@
         <div class="azkar-list" id="azkarListMasaa"></div>
       </div>
 
-      <button class="azkar-tab" id="tabOther">
-        <span class="azkar-tab-icon">🤲</span>
-        <span class="azkar-tab-label">أدعية أخرى</span>
-        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg>
-      </button>
       <div class="azkar-panel" id="azkarPanelOther">
         <div class="azkar-progress">
           <span class="count-txt" id="azkarCountTxtOther">0 / 0</span>
@@ -1496,11 +1528,6 @@
         <div class="azkar-list" id="azkarListOther"></div>
       </div>
 
-      <button class="azkar-tab" id="tabTasbeeh">
-        <span class="azkar-tab-icon">📿</span>
-        <span class="azkar-tab-label">التسبيح</span>
-        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg>
-      </button>
       <div class="azkar-panel" id="azkarPanelTasbeeh">
         <div class="tasbeeh-progress">
           <span class="count-txt" id="tasbeehTotal">إجمالي اليوم: 0</span>
@@ -1887,13 +1914,18 @@ function closeQuranOverlay(){
   document.body.style.overflow = '';
   setActiveNav(navHomeBtn);
 }
-function openAzkarOverlay(mode){
+function openAzkarOverlay(){
   closeAllOverlays();
   azkarOverlay.classList.add('open');
   document.body.style.overflow = 'hidden';
-  tabSabah.style.display = '';
-  tabMasaa.style.display = '';
-  openAzkarTab(mode);
+  azkarOpenMode = null;
+  Object.keys(azkarConfig).forEach(m => {
+    const cfg = azkarConfig[m];
+    cfg.tab.classList.remove('active');
+    cfg.panel.classList.remove('open');
+  });
+  tabTasbeeh.classList.remove('active');
+  azkarPanelTasbeeh.classList.remove('open');
   setActiveNav(navAzkarBtn);
 }
 function closeAzkarOverlay(){
@@ -1941,7 +1973,7 @@ navHomeBtn.addEventListener('click', () => {
 document.getElementById('searchClose').addEventListener('click', closeSearchOverlay);
 navSettingsBtn.addEventListener('click', openSettingsOverlay);
 navQuranBtn.addEventListener('click', openQuranOverlay);
-navAzkarBtn.addEventListener('click', () => openAzkarOverlay('sabah'));
+navAzkarBtn.addEventListener('click', () => openAzkarOverlay());
 const notifBtnEl = document.getElementById('notifBtn');
 if(notifBtnEl){
   notifBtnEl.addEventListener('click', () => {
@@ -2657,11 +2689,11 @@ const tafsirBtn = document.getElementById('tafsirBtn');
 const tafsirPanel = document.getElementById('tafsirPanel');
 const tafsirSearchBox = document.getElementById('tafsirSearchBox');
 const tafsirSurahListEl = document.getElementById('tafsirSurahList');
-const tafsirSurahResult = document.getElementById('tafsirSurahResult');
-let tafsirLoadedSurah = null;
+let tafsirOpenIndex = null;
 
 function renderTafsirSurahList(filter=""){
   tafsirSurahListEl.innerHTML = "";
+  tafsirOpenIndex = null;
   SURAHS.forEach((name, i) => {
     if(filter && !name.includes(filter)) return;
     const row = document.createElement('div');
@@ -2671,28 +2703,56 @@ function renderTafsirSurahList(filter=""){
       <div class="s-name">سورة ${name}</div>
       <svg class="icon" viewBox="0 0 24 24" fill="#e0b869"><path d="M8 5v14l11-7z"/></svg>
     `;
-    row.addEventListener('click', () => loadTafsirForSurah(i));
+    row.addEventListener('click', () => toggleTafsirRow(i));
     tafsirSurahListEl.appendChild(row);
+
+    const panel = document.createElement('div');
+    panel.className = 'tafsir-inline-panel';
+    panel.id = `tafsirPanel-${i}`;
+    panel.innerHTML = `<div class="tafsir-inline-panel-inner"></div>`;
+    tafsirSurahListEl.appendChild(panel);
   });
 }
 renderTafsirSurahList();
 tafsirSearchBox.addEventListener('input', e => renderTafsirSurahList(e.target.value.trim()));
 
-async function loadTafsirForSurah(index){
-  if(tafsirLoadedSurah === index) return;
-  tafsirLoadedSurah = index;
-  tafsirSurahResult.innerHTML = `<div class="search-hint">جارٍ تحميل تفسير سورة ${SURAHS[index]}...</div>`;
-  try{
-    const r = await fetch(`https://api.alquran.cloud/v1/surah/${index+1}/ar.muyassar`);
-    const d = await r.json();
-    let html = `<div class="tafsir-surah-title">تفسير سورة ${SURAHS[index]}</div>`;
-    d.data.ayahs.forEach(a => {
-      html += `<div class="tafsir-ayah-item"><span class="tafsir-ayah-num">${a.numberInSurah}</span>${a.text}</div>`;
-    });
-    tafsirSurahResult.innerHTML = html;
-  }catch(err){
-    tafsirSurahResult.innerHTML = `<div class="search-hint">تعذّر تحميل التفسير حالياً.</div>`;
+async function toggleTafsirRow(index){
+  const rows = tafsirSurahListEl.querySelectorAll('.surah-row');
+  const panel = document.getElementById(`tafsirPanel-${index}`);
+  if(!panel) return;
+  const willOpen = !panel.classList.contains('open');
+
+  tafsirSurahListEl.querySelectorAll('.tafsir-inline-panel.open').forEach(p => p.classList.remove('open'));
+  rows.forEach(r => r.classList.remove('playing'));
+
+  if(!willOpen){
+    tafsirOpenIndex = null;
+    return;
   }
+
+  panel.classList.add('open');
+  tafsirOpenIndex = index;
+  const row = panel.previousElementSibling;
+  if(row) row.classList.add('playing');
+
+  const inner = panel.querySelector('.tafsir-inline-panel-inner');
+  if(!inner.dataset.loaded){
+    inner.innerHTML = `<div class="search-hint">جارٍ تحميل تفسير سورة ${SURAHS[index]}...</div>`;
+    try{
+      const r = await fetch(`https://api.alquran.cloud/v1/surah/${index+1}/ar.muyassar`);
+      const d = await r.json();
+      let html = `<div class="tafsir-surah-title">تفسير سورة ${SURAHS[index]}</div>`;
+      d.data.ayahs.forEach(a => {
+        html += `<div class="tafsir-ayah-item"><span class="tafsir-ayah-num">${a.numberInSurah}</span>${a.text}</div>`;
+      });
+      inner.innerHTML = html;
+      inner.dataset.loaded = "1";
+    }catch(err){
+      inner.innerHTML = `<div class="search-hint">تعذّر تحميل التفسير حالياً.</div>`;
+    }
+  }
+
+  panel.scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 
 tafsirBtn.addEventListener('click', () => {
