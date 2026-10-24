@@ -1,0 +1,113 @@
+name: Build Android AAB
+
+on:
+  workflow_dispatch:
+    inputs:
+      versionCode:
+        description: 'Android versionCode (must be higher than the last one accepted by Play Console)'
+        required: true
+        default: '3'
+      versionName:
+        description: 'Android versionName (user-visible, e.g. 1.1)'
+        required: true
+        default: '1.2'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Test web integration
+        run: node --test tests/*.test.cjs
+
+      - name: Init npm project
+        run: npm init -y
+
+      - name: Install Capacitor
+        run: npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor/app
+
+      - name: Prepare web assets
+        run: mkdir -p www && cp index.html manifest.json privacy.html icon-192.png icon-512.png icon-maskable-512.png www/ && cp -R audio js stories styles www/
+
+      - name: Init Capacitor        
+        run: npx cap init "صلاتي" "com.nadern922.salati" --web-dir=www
+      - name: Add Android platform
+        run: npx cap add android
+      - name: Install background adhan
+        run: python3 scripts/install-android-adhan.py
+
+      - name: Force target/compile SDK 36 (Android 16 requirement)
+        run: |
+          sed -i "s/compileSdkVersion = [0-9]\+/compileSdkVersion = 36/" android/variables.gradle
+          sed -i "s/targetSdkVersion = [0-9]\+/targetSdkVersion = 36/" android/variables.gradle
+          cat android/variables.gradle
+      - name: Fix Kotlin stdlib version conflict
+        run: echo 'allprojects { configurations.all { resolutionStrategy { force "org.jetbrains.kotlin:kotlin-stdlib:1.9.24" force "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.24" force "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.24" } } }' >> android/build.gradle
+
+      - name: Set version
+        run: |
+          sed -i "s/versionCode [0-9]\+/versionCode ${{ inputs.versionCode }}/" android/app/build.gradle
+          sed -i "s/versionName \"[^\"]*\"/versionName \"${{ inputs.versionName }}\"/" android/app/build.gradle
+
+      - name: Sync
+        run: npx cap sync
+
+      - name: Decode keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/release.keystore
+
+      - name: Add signing config
+        run: |
+          cat >> android/app/build.gradle << 'GRADLEEOF'
+
+          android {
+              signingConfigs {
+                  release {
+                      storeFile file("release.keystore")
+                      storePassword "${{ secrets.KEYSTORE_PASSWORD }}"
+                      keyAlias "${{ secrets.KEY_ALIAS }}"
+                      keyPassword "${{ secrets.KEY_PASSWORD }}"
+                  }
+              }
+              buildTypes {
+                  release {
+                      signingConfig signingConfigs.release
+                  }
+              }
+          }
+          GRADLEEOF
+
+      - name: Build AAB
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew bundleRelease
+
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-signed
+          path: android/app/build/outputs/bundle/release/app-release.aab
+
+
+      - name: Build APK for testing
+        run: cd android && ./gradlew assembleRelease
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
